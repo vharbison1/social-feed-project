@@ -7,51 +7,23 @@
         <script src="https://kit.fontawesome.com/e5bd83b59d.js" crossorigin="anonymous"></script>
     </head>
     <body>
-        <div class="card-deck">
-                <div class="card">
-                    <img src="..." class="card-img-top" alt="...">
-                    <div class="card-body">
-                    <h5 class="card-title">Card title</h5>
-                    <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-                    <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
-                    <button class="float-right btn btn-light delete-post">Delete</button>
-                    </div>
-                </div>
-                <div class="card">
-                    <img src="..." class="card-img-top" alt="...">
-                    <div class="card-body">
-                    <h5 class="card-title">Card title</h5>
-                    <p class="card-text">This card has supporting text below as a natural lead-in to additional content.</p>
-                    <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
-                    <button class="float-right btn btn-light delete-post">Delete</button>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                            <img src="https://pbs.twimg.com/profile_images/913493578290044928/s4LN7sTj_400x400.jpg" class="card-img-top" alt="...">
-                    <h5 class="card-title">Card title</h5>
-                    <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This card has even longer content than the first to show that equal height action.</p>
-                    <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
-                    <button class="float-right btn btn-light delete-post">Delete</button>
-                    </div>
-
-                </div>
-                </div>
+        <input class="joint" type='file' id="imgInp" onchange="readURL(this)"/>
+        <img style="width:45px" id="blah" src="#" alt="your image" />
     </body>
     <script type="text/javascript">
     
-    //Grabs all current elements class delete-post and attach onclick element.
-    var deletePost = document.querySelectorAll(".delete-post"); 
+    function readURL(input) {
 
-    deletePost.forEach(function(item){
-        item.addEventListener("click", function(){
-        var elements = this.parentNode.parentNode; // refers to current element. Gets Parent card-body. Then Gets Parent OF card-body, which is card. (the element we want to delete)
-        elements.parentNode.removeChild(elements);
-        });
-    });
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+            reader.onload = function (e) {
+            console.log(e.target.result);
+            var imageId = document.getElementById("blah");
+            imageId.setAttribute("src", e.target.result);
+        }
 
-
-
-
+        reader.readAsDataURL(input.files[0]);
+    }
+    }
     </script>
 </html>

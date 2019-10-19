@@ -1,10 +1,13 @@
 body{
     margin:40px;
+    background-image: url("img/background.jpg");
 }
 
-h2
+h1
 {
     font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    color: white;
+    text-shadow: 2px 2px #363215;
 }
 
 .formatpostbutton {

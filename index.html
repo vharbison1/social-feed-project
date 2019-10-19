@@ -10,7 +10,7 @@
         <script src="https://kit.fontawesome.com/e5bd83b59d.js" crossorigin="anonymous"></script>
     </head>
     <body>
-        <h2 class="text-center">FACE TWIT</h2>
+        <h1 class="text-center">FACE TWIT</h1>
         <div id="input-container">
             <div class="input-group mb-3">
                     <div class="input-group-prepend">
@@ -19,13 +19,10 @@
                     <input type="text" id="name" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1" maxlength="10">
             </div>
             <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                    <span class="input-group-text">Upload Image</span>
-                    </div>
-                    <div class="custom-file">
-                    <input type="file" id="input-file" class="custom-file-input">
-                    <label class="custom-file-label" for="inputGroupFile01">Choose file</label>
-                    </div>
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon2">Your Image URL</span>
+                </div>
+                <input type="text" id="input-file" class="form-control" placeholder="Your File URL" aria-label="Your File URL" aria-describedby="basic-addon2">
             </div>
             <div class="input-group">
                     <div class="input-group-prepend">
@@ -46,6 +43,7 @@
     var users = [];
 
     var postContainer = document.getElementById('post-container'); //start of card-deck
+    var currentImage = null;
 
     document.getElementById("post").onclick = function(event) 
     {   
@@ -80,7 +78,7 @@
         {
             users.push(postData);
             publish(users);
-            //deletePost();
+            clearInputData(); //Clear Input Data Once User Submits
         }
     }
 
@@ -129,7 +127,7 @@
                 {
                     var createImage = document.createElement("img");
                     createImage.setAttribute("class", "card-img-top");
-                    createImage.innerHTML = data.imageposted;
+                    createImage.setAttribute("src", data.imageposted);
                     createCardBody.appendChild(createImage);
                 }
 
@@ -177,17 +175,19 @@
     }
 
     //Grabs all current elements class delete-post and attach onclick element.    
-    //bug here, after you delete the second post, it gives an error  Cannot read property 'removeChild' of null  
     //item is reference to the current class the user is in
     function deletePost(item)
     {       
-        var elements = item.parentNode.parentNode.parentNode;
+        var elements = item.parentNode.parentNode.parentNode; //Goes to card-body-> then card -> then looks at col-m3 div
         elements.parentNode.removeChild(elements);
     }
-
     
-    //TODO Get Image Data
-    //TODO Clear Input When User Posts
+    function clearInputData()
+    {
+       document.getElementById('name').value = "";
+       document.getElementById('input-file').value = "";
+       document.getElementById('contents').value = "";
+    }
 
     //EXTRA IF HAVE TIME
     //TODO BONUS Colors
