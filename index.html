@@ -2,45 +2,194 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Rock Paper Scissors</title>
+        <title>Social Media Project</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
         <link rel="stylesheet" href="styles.css">
         <script src="https://kit.fontawesome.com/e5bd83b59d.js" crossorigin="anonymous"></script>
     </head>
     <body>
-        <div class="card-deck">
-                <div class="card">
-                    <img src="..." class="card-img-top" alt="...">
-                    <div class="card-body">
-                    <h5 class="card-title">Card title</h5>
-                    <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-                    <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+        <h2 class="text-center">FACE TWIT</h2>
+        <div id="input-container">
+            <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="basic-addon1">Your Name</span>
                     </div>
-                </div>
-                <div class="card">
-                    <img src="..." class="card-img-top" alt="...">
-                    <div class="card-body">
-                    <h5 class="card-title">Card title</h5>
-                    <p class="card-text">This card has supporting text below as a natural lead-in to additional content.</p>
-                    <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+                    <input type="text" id="name" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1" maxlength="10">
+            </div>
+            <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                    <span class="input-group-text">Upload Image</span>
                     </div>
-                </div>
-                <div class="card">
-                    <img src="..." class="card-img-top" alt="...">
-                    <div class="card-body">
-                    <h5 class="card-title">Card title</h5>
-                    <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This card has even longer content than the first to show that equal height action.</p>
-                    <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+                    <div class="custom-file">
+                    <input type="file" id="input-file" class="custom-file-input">
+                    <label class="custom-file-label" for="inputGroupFile01">Choose file</label>
                     </div>
-                </div>
-                </div>
+            </div>
+            <div class="input-group">
+                    <div class="input-group-prepend">
+                    <span class="input-group-text">WRITE</span>
+                    </div>
+                    <textarea id="contents" class="form-control" aria-label="With textarea" maxlength="150"></textarea>
+            </div>
+            <div class="text-center formatpostbutton">
+                <button type="submit" id="post" class="btn btn-success">POST</button>
+            </div>
+        </div>
+
+        <div id="post-container" class="row"></div> <!-- For some reason class card-deck is not responsive -->
+
     </body>
     <script type="text/javascript">
 
-    var users = [
-        {},
-        {}
-    ];
+    var users = [];
+
+    var postContainer = document.getElementById('post-container'); //start of card-deck
+
+    document.getElementById("post").onclick = function(event) 
+    {   
+        //If more than 0, validation throws an error. Post Wont Update
+        var errorExist = 0;
+
+        //Loops through data and sets the property values
+        var inputs = document.querySelectorAll('input, textarea'); //looks for input or textarea
+        var postData = new Object();
+
+        inputs.forEach(function(item){
+            
+            errorExist = inputValidation(item.id,item.value,errorExist); //If error exist, Wont Post/Populate user info and alert.
+
+            if(item.id == "name")
+            {
+                postData["username"] = item.value;
+            }
+            else if (item.id == "input-file")
+            {
+                postData["imageposted"] = item.value;
+            }
+            else if (item.id == "contents")
+            {
+                postData["postcontents"] = item.value;
+            }
+        });
+
+        postData["dateposted"] = todaysDate(); //Sets Todays Date
+        //console.log(errorExist);
+        if(errorExist == 0)
+        {
+            users.push(postData);
+            publish(users);
+            //deletePost();
+        }
+    }
+
+
+/*     var users = [
+        {username: "John", dateposted:"9/20/2019", imageposted: "random.jpg", postcontents:"somethingrandom"}
+    ]; */
+
+    function inputValidation(id,value,error)
+    {
+        //File Must be an image
+        if(id == "input-file" && value != "")
+        {
+            var acceptedImageTypes  = ['jpg','jpeg','gif','png'];
+            var extension = value.split('.').pop();
+            if(acceptedImageTypes.indexOf(extension) == -1) { error += 1; alert("IMAGES ONLY!")}
+        }
+        //No Empty Strings can be posted
+        //Skips Image
+        else if(id != "input-file" && value == "")
+        {
+            error += 1;
+            alert("NO EMPTY CHARACTERS!");
+        }
+
+        return error;
+    }
+
+    //Loops Through users data and populates separately in card data (bootstrap)
+    function publish(users)
+    {
+        var columnContainerSize = null;
+
+        users.forEach(function(data){
+
+        columnContainerSize = document.createElement("div"); //create div with col-sm-3
+        columnContainerSize.setAttribute("class", "col-sm-3");
+
+        createCard = document.createElement("div"); //create card
+        createCard.setAttribute("class", "card border border-primary");
+
+            var createCardBody = document.createElement("div"); //create body inside card
+            createCardBody.setAttribute("class", "card-body");
+
+                var createCardText = document.createElement("p"); //create post-contents inside body
+                createCardText.setAttribute("class", "card-text");
+                createCardText.innerHTML = data.postcontents;
+                createCardBody.appendChild(createCardText);
+
+                var createCardDateContainer = document.createElement("p"); //create p inside body
+                createCardDateContainer.setAttribute("class", "card-text");
+
+                    var createCardDate = document.createElement("small"); //create card date inside of container
+                    createCardDate.setAttribute("class", "text-muted");
+                    createCardDate.innerHTML = data.username + " created on " + data.dateposted;
+                    createCardDateContainer.appendChild(createCardDate);
+                
+                createCardBody.appendChild(createCardDateContainer);
+
+                var deleteButton = document.createElement('button'); //create delete button inside body
+                deleteButton.setAttribute("class", "float-right btn btn-light delete-post");
+                deleteButton.setAttribute("onclick", "deletePost(this)");
+                deleteButton.innerHTML = "Delete";
+
+                createCardBody.appendChild(deleteButton);
+
+            if(data.imageposted != '') //if image exist it will be appended first to card
+            {
+                var createImage = document.createElement("img");
+                createImage.setAttribute("class", "card-img-top");
+                createImage.innerHTML = data.imageposted;
+                createCard.appendChild(createImage);
+            }
+
+        createCard.appendChild(createCardBody);
+        columnContainerSize.appendChild(createCard);
+       // console.log(data);
+        });
+
+        postContainer.appendChild(columnContainerSize);
+    }
+
+    function todaysDate() 
+    {
+        var today = new Date();
+        return (today.getMonth()+1) + "/" + today.getDate() + "/" + today.getFullYear();
+    }
+
+    //Clear input data once user clicks submit button
+    function clearInputData()
+    {
+
+    }
+
+    //Grabs all current elements class delete-post and attach onclick element.    
+    //bug here, after you delete the second post, it gives an error  Cannot read property 'removeChild' of null  
+    //item is reference to the current class the user is in
+    function deletePost(item)
+    {       
+        var elements = item.parentNode.parentNode.parentNode;
+        elements.parentNode.removeChild(elements);
+    }
+
+    
+    //TODO Get Image Data
+
+    //EXTRA IF HAVE TIME
+    //TODO BONUS Colors
+    //TODO BONUS Update Post
 
     </script>
 </html>

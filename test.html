@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Rock Paper Scissors</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <link rel="stylesheet" href="styles.css">
+        <script src="https://kit.fontawesome.com/e5bd83b59d.js" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <div class="card-deck">
+                <div class="card">
+                    <img src="..." class="card-img-top" alt="...">
+                    <div class="card-body">
+                    <h5 class="card-title">Card title</h5>
+                    <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+                    <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+                    <button class="float-right btn btn-light delete-post">Delete</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <img src="..." class="card-img-top" alt="...">
+                    <div class="card-body">
+                    <h5 class="card-title">Card title</h5>
+                    <p class="card-text">This card has supporting text below as a natural lead-in to additional content.</p>
+                    <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+                    <button class="float-right btn btn-light delete-post">Delete</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <img src="..." class="card-img-top" alt="...">
+                    <div class="card-body">
+                    <h5 class="card-title">Card title</h5>
+                    <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This card has even longer content than the first to show that equal height action.</p>
+                    <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+                    <button class="float-right btn btn-light delete-post">Delete</button>
+                    </div>
+
+                </div>
+                </div>
+    </body>
+    <script type="text/javascript">
+    
+    //Grabs all current elements class delete-post and attach onclick element.
+    var deletePost = document.querySelectorAll(".delete-post"); 
+
+    deletePost.forEach(function(item){
+        item.addEventListener("click", function(){
+        var elements = this.parentNode.parentNode; // refers to current element. Gets Parent card-body. Then Gets Parent OF card-body, which is card. (the element we want to delete)
+        elements.parentNode.removeChild(elements);
+        });
+    });
+
+
+
+
+    </script>
+</html>
