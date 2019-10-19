@@ -125,6 +125,14 @@
             var createCardBody = document.createElement("div"); //create body inside card
             createCardBody.setAttribute("class", "card-body");
 
+                if(data.imageposted != '') //if image exist it will be append insideBody
+                {
+                    var createImage = document.createElement("img");
+                    createImage.setAttribute("class", "card-img-top");
+                    createImage.innerHTML = data.imageposted;
+                    createCardBody.appendChild(createImage);
+                }
+
                 var createCardText = document.createElement("p"); //create post-contents inside body
                 createCardText.setAttribute("class", "card-text");
                 createCardText.innerHTML = data.postcontents;
@@ -147,13 +155,6 @@
 
                 createCardBody.appendChild(deleteButton);
 
-            if(data.imageposted != '') //if image exist it will be appended first to card
-            {
-                var createImage = document.createElement("img");
-                createImage.setAttribute("class", "card-img-top");
-                createImage.innerHTML = data.imageposted;
-                createCard.appendChild(createImage);
-            }
 
         createCard.appendChild(createCardBody);
         columnContainerSize.appendChild(createCard);
