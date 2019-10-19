@@ -168,12 +168,6 @@
         return (today.getMonth()+1) + "/" + today.getDate() + "/" + today.getFullYear();
     }
 
-    //Clear input data once user clicks submit button
-    function clearInputData()
-    {
-
-    }
-
     //Grabs all current elements class delete-post and attach onclick element.    
     //item is reference to the current class the user is in
     function deletePost(item)
@@ -182,6 +176,7 @@
         elements.parentNode.removeChild(elements);
     }
     
+    //Clear input data once user clicks post button
     function clearInputData()
     {
        document.getElementById('name').value = "";
