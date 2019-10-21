@@ -22,7 +22,7 @@
                 <div class="input-group-prepend">
                     <span class="input-group-text" id="basic-addon2">Your Image URL</span>
                 </div>
-                <input type="text" id="input-file" class="form-control" placeholder="Your File URL" aria-label="Your File URL" aria-describedby="basic-addon2">
+                <input type="text" id="input-file" class="form-control" placeholder="Your File URL must end in jpg, jpeg, png, or gif" aria-label="jpg, jpeg, png, or gif" aria-describedby="basic-addon2">
             </div>
             <div class="input-group">
                     <div class="input-group-prepend">
@@ -117,12 +117,12 @@
         columnContainerSize.setAttribute("class", "col-sm-3");
 
         createCard = document.createElement("div"); //create card
-        createCard.setAttribute("class", "card border border-primary");
+        createCard.setAttribute("class", "card border border-white");
 
             var createCardBody = document.createElement("div"); //create body inside card
             createCardBody.setAttribute("class", "card-body");
 
-                if(data.imageposted != '') //if image exist it will be append insideBody
+                if(data.imageposted != '') //if image exist it will be append inside Body
                 {
                     var createImage = document.createElement("img");
                     createImage.setAttribute("class", "card-img-top");
@@ -138,12 +138,29 @@
                 var createCardDateContainer = document.createElement("p"); //create p inside body
                 createCardDateContainer.setAttribute("class", "card-text");
 
-                    var createCardDate = document.createElement("small"); //create card date inside of container
+                    var createCardDate = document.createElement("small"); //create card date inside of card date container
                     createCardDate.setAttribute("class", "text-muted");
                     createCardDate.innerHTML = data.username + " created on " + data.dateposted;
                     createCardDateContainer.appendChild(createCardDate);
                 
                 createCardBody.appendChild(createCardDateContainer);
+              
+                var changeColorContainer = document.createElement("div"); //create color select inside body
+                changeColorContainer.setAttribute("class", "form-group");
+
+                    var colorSelectTitle = document.createElement("label");
+                    colorSelectTitle.innerHTML = "Colors:";
+                    changeColorContainer.appendChild(colorSelectTitle);
+
+                    var changeColorSelect = document.createElement('select'); 
+                    changeColorSelect.setAttribute("onchange", "changeColor(this)");
+                    changeColorSelect.setAttribute("name", "colorlist");
+                    changeColorSelect.setAttribute("class", "form-control");
+                    colorList(changeColorSelect); //Appends the color options
+                    changeColorContainer.appendChild(changeColorSelect);
+
+                 createCardBody.appendChild(changeColorContainer);
+
 
                 var deleteButton = document.createElement('button'); //create delete button inside body
                 deleteButton.setAttribute("class", "float-right btn btn-light delete-post");
@@ -174,6 +191,40 @@
         var elements = item.parentNode.parentNode.parentNode; //Goes to card-body-> then card -> then looks at col-m3 div
         elements.parentNode.removeChild(elements);
     }
+
+    //Changes Color based off what user chooses
+    function changeColor(item)
+    {
+        var backgroundColor = '';
+        if(item.value == 'white')
+        {
+            backgroundColor = "#FFFFFF";
+        }
+        else if (item.value == "blue")
+        {
+            backgroundColor = "#86D3FF";
+        }
+        else 
+        {
+            backgroundColor = "#B2E6C0";
+        }
+
+
+        var elements = item.parentNode.parentNode; //Goes to card-body-> then card
+        elements.style.background = backgroundColor;
+    }
+
+    //Populates colorlist options select field 
+    function colorList(selectElement)
+    {
+        var colorsToAdd = ['white','blue','green'];
+        for(var i = 0; i < colorsToAdd.length;i++)
+        {
+        var colorOptions = document.createElement("option");
+        colorOptions.text = colorsToAdd[i];
+        selectElement.appendChild(colorOptions);
+        }
+    }
     
     //Clear input data once user clicks post button
     function clearInputData()
@@ -183,8 +234,6 @@
        document.getElementById('contents').value = "";
     }
 
-    //EXTRA IF HAVE TIME
-    //TODO BONUS Colors
     //TODO BONUS Update Post
 
 
