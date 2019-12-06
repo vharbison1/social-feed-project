@@ -7,6 +7,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
         <link rel="stylesheet" href="styles.css">
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <script src="https://kit.fontawesome.com/e5bd83b59d.js" crossorigin="anonymous"></script>
     </head>
     <body>
@@ -40,7 +41,8 @@
     </body>
     <script type="text/javascript">
 
-    var users = [];
+    //Show All Post Stored in Express Server
+    publish();
 
     var postContainer = document.getElementById('post-container'); //start of card-deck
 
@@ -51,7 +53,7 @@
 
         //Loops through data and sets the property values
         var inputs = document.querySelectorAll('input, textarea'); //looks for input or textarea
-        var postData = new Object();
+        var postData = {};
 
         inputs.forEach(function(item){
             
@@ -72,19 +74,66 @@
         });
 
         postData["dateposted"] = todaysDate(); //Sets Todays Date
-        //console.log(errorExist);
+        
         if(errorExist == 0)
         {
-            users.push(postData);
-            publish(users);
-            clearInputData(); //Clear Input Data Once User Submits
+            //post then call publish to republish
+            axios.post("http://localhost:3000/api/messages", postData).then(function(res)
+            {
+                return res;
+            })
+            .then(function(res)
+            {
+                publish();
+
+                //Clear Input Data Once User Submits
+                clearInputData(); 
+            })
+            .catch(function(error)
+            {
+                console.log(error);
+            });
         }
     }
 
 
-/*     var users = [
-        {username: "John", dateposted:"9/20/2019", imageposted: "random.jpg", postcontents:"somethingrandom"}
-    ]; */
+
+    //Calls the messages API with GET
+    //Loops Through users data and populates separately in card data (bootstrap)
+    function publish()
+    {
+        axios.get("http://localhost:3000/api/messages").then(function (res)
+        {
+            var columnContainerSize = '';
+            console.log(res);
+
+            if(res.data)
+            {
+                res.data.forEach(function(data)
+                {
+                    columnContainerSize += 
+                    `<div class="col-sm-3" id=${data.id}>
+                        <div class="card border border-white">
+                            <div class="card-body">
+                                ${data.img ? `<img src=${data.img} class="card-img-top" >` : ''} 
+                                <p class="card-text">${data.content}</p>
+                                <p class="card-text">
+                                    <small class="text-muted">${data.username} created on ${data.dateposted}</small>
+                                </p>
+                                <div class="form-group">
+                                    <label>Colors</label>
+                                    <select class="form-control" onchange="changeColor(this) name="colorlist"></select>                                  
+                                </div>
+                                <button class="float-right btn btn-light delete-post" onclick="deletePost(this)">Delete</button>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                //After Loop and concatenate each bootstrap post with contains, 
+                postContainer.innerHTML = columnContainerSize;
+            }
+        });
+    }
 
     function inputValidation(id,value,error)
     {
@@ -106,78 +155,6 @@
         return error;
     }
 
-    //Loops Through users data and populates separately in card data (bootstrap)
-    function publish(users)
-    {
-        var columnContainerSize = null;
-
-        users.forEach(function(data){
-
-        columnContainerSize = document.createElement("div"); //create div with col-sm-3
-        columnContainerSize.setAttribute("class", "col-sm-3");
-
-        createCard = document.createElement("div"); //create card
-        createCard.setAttribute("class", "card border border-white");
-
-            var createCardBody = document.createElement("div"); //create body inside card
-            createCardBody.setAttribute("class", "card-body");
-
-                if(data.imageposted != '') //if image exist it will be append inside Body
-                {
-                    var createImage = document.createElement("img");
-                    createImage.setAttribute("class", "card-img-top");
-                    createImage.setAttribute("src", data.imageposted);
-                    createCardBody.appendChild(createImage);
-                }
-
-                var createCardText = document.createElement("p"); //create post-contents inside body
-                createCardText.setAttribute("class", "card-text");
-                createCardText.innerHTML = data.postcontents;
-                createCardBody.appendChild(createCardText);
-
-                var createCardDateContainer = document.createElement("p"); //create p inside body
-                createCardDateContainer.setAttribute("class", "card-text");
-
-                    var createCardDate = document.createElement("small"); //create card date inside of card date container
-                    createCardDate.setAttribute("class", "text-muted");
-                    createCardDate.innerHTML = data.username + " created on " + data.dateposted;
-                    createCardDateContainer.appendChild(createCardDate);
-                
-                createCardBody.appendChild(createCardDateContainer);
-              
-                var changeColorContainer = document.createElement("div"); //create color select inside body
-                changeColorContainer.setAttribute("class", "form-group");
-
-                    var colorSelectTitle = document.createElement("label");
-                    colorSelectTitle.innerHTML = "Colors:";
-                    changeColorContainer.appendChild(colorSelectTitle);
-
-                    var changeColorSelect = document.createElement('select'); 
-                    changeColorSelect.setAttribute("onchange", "changeColor(this)");
-                    changeColorSelect.setAttribute("name", "colorlist");
-                    changeColorSelect.setAttribute("class", "form-control");
-                    colorList(changeColorSelect); //Appends the color options
-                    changeColorContainer.appendChild(changeColorSelect);
-
-                 createCardBody.appendChild(changeColorContainer);
-
-
-                var deleteButton = document.createElement('button'); //create delete button inside body
-                deleteButton.setAttribute("class", "float-right btn btn-light delete-post");
-                deleteButton.setAttribute("onclick", "deletePost(this)");
-                deleteButton.innerHTML = "Delete";
-
-                createCardBody.appendChild(deleteButton);
-
-
-        createCard.appendChild(createCardBody);
-        columnContainerSize.appendChild(createCard);
-       // console.log(data);
-        });
-
-        postContainer.appendChild(columnContainerSize);
-    }
-
     function todaysDate() 
     {
         var today = new Date();
@@ -187,9 +164,21 @@
     //Grabs all current elements class delete-post and attach onclick element.    
     //item is reference to the current class the user is in
     function deletePost(item)
-    {       
+    {    
         var elements = item.parentNode.parentNode.parentNode; //Goes to card-body-> then card -> then looks at col-m3 div
-        elements.parentNode.removeChild(elements);
+
+        var data = {
+            id : elements.id
+        };
+
+        axios.delete(`http://localhost:3000/api/messages/${elements.id}`).then(function (res)
+        {
+            publish();
+        })
+        .catch(function(error)
+        {
+            console.log(error);
+        });
     }
 
     //Changes Color based off what user chooses
@@ -234,8 +223,7 @@
        document.getElementById('contents').value = "";
     }
 
-    //TODO BONUS Update Post
-
-
+    //TO DO COLOR LIST
+    //TO DO UPDATE POST  
     </script>
 </html>
