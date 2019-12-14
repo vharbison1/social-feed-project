@@ -14,22 +14,22 @@
         <h1 class="text-center">FACE TWIT</h1>
         <div id="input-container">
             <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text" id="basic-addon1">Your Name</span>
-                    </div>
-                    <input type="text" id="name" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1" maxlength="30">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon2">Post Title</span>
+                </div>
+                <input type="text" id="post_title" class="form-control user-input" placeholder="Post Title" aria-label="Post Title" aria-describedby="basic-addon2">
             </div>
             <div class="input-group mb-3">
                 <div class="input-group-prepend">
                     <span class="input-group-text" id="basic-addon2">Your Image URL</span>
                 </div>
-                <input type="text" id="input-file" class="form-control" placeholder="Your File URL must end in jpg, jpeg, png, or gif" aria-label="jpg, jpeg, png, or gif" aria-describedby="basic-addon2">
+                <input type="text" id="post_image_url" class="form-control user-input" placeholder="Your File URL must end in jpg, jpeg, png, or gif" aria-label="jpg, jpeg, png, or gif" aria-describedby="basic-addon2">
             </div>
             <div class="input-group">
                     <div class="input-group-prepend">
                     <span class="input-group-text">WRITE</span>
                     </div>
-                    <textarea id="contents" class="form-control" aria-label="With textarea" maxlength="150"></textarea>
+                    <textarea id="post_body" class="form-control user-input" aria-label="With textarea" maxlength="150"></textarea>
             </div>
             <div class="text-center formatpostbutton">
                 <button type="submit" id="post" class="btn btn-success">POST</button>
@@ -52,33 +52,18 @@
         var errorExist = 0;
 
         //Loops through data and sets the property values
-        var inputs = document.querySelectorAll('input, textarea'); //looks for input or textarea
+        var inputs = document.querySelectorAll('user-input'); //looks for input or textarea
         var postData = {};
 
         inputs.forEach(function(item){
-            
-            errorExist = inputValidation(item.id,item.value,errorExist); //If error exist, Wont Post/Populate user info and alert.
-
-            if(item.id == "name")
-            {
-                postData["username"] = item.value;
-            }
-            else if (item.id == "input-file")
-            {
-                postData["imageposted"] = item.value;
-            }
-            else if (item.id == "contents")
-            {
-                postData["postcontents"] = item.value;
-            }
+            postData[item.id] = item.id;
         });
 
-        postData["dateposted"] = todaysDate(); //Sets Todays Date
         
         if(errorExist == 0)
         {
             //post then call publish to republish
-            axios.post("http://localhost:3000/api/messages", postData).then(function(res)
+            axios.post("http://localhost:3000/api/posts", postData).then(function(res)
             {
                 return res;
             })
@@ -96,13 +81,11 @@
         }
     }
 
-
-
     //Calls the messages API with GET
     //Loops Through users data and populates separately in card data (bootstrap)
     function publish()
     {
-        axios.get("http://localhost:3000/api/messages").then(function (res)
+        axios.get("http://localhost:3000/api/messages/all").then(function (res)
         {
             var columnContainerSize = '';
             console.log(res);
@@ -115,15 +98,16 @@
                     `<div class="col-sm-3" id=${data.id}>
                         <div class="card border border-white">
                             <div class="card-body">
-                                ${data.img ? `<img src=${data.img} class="card-img-top" >` : ''} 
-                                <p class="card-text">${data.content}</p>
+                                ${data.post_image_url ? `<img src=${data.post_image_url} class="card-img-top" >` : ''} 
+                                <p class="card-text post-contents">${data.post_body}</p>
                                 <p class="card-text">
-                                    <small class="text-muted">${data.username} created on ${data.dateposted}</small>
+                                    <small class="text-muted">user-temp${data.user_id} created on ${data.date_updated}</small>
                                 </p>
                                 <div class="form-group">
                                     <label>Colors</label>
                                     <select class="form-control" onchange="changeColor(this) name="colorlist"></select>                                  
                                 </div>
+                                <div class="edit-post" onclick="editPost(this)"><button type="button" class="btn btn-info" ">Edit</button></div>
                                 <button class="float-right btn btn-light delete-post" onclick="deletePost(this)">Delete</button>
                             </div>
                         </div>
@@ -155,12 +139,6 @@
         return error;
     }
 
-    function todaysDate() 
-    {
-        var today = new Date();
-        return (today.getMonth()+1) + "/" + today.getDate() + "/" + today.getFullYear();
-    }
-
     //Grabs all current elements class delete-post and attach onclick element.    
     //item is reference to the current class the user is in
     function deletePost(item)
@@ -180,6 +158,54 @@
             console.log(error);
         });
     }
+    
+    function editPost(item)
+    {
+
+        var elements = item.parentNode.parentNode.parentNode; //Goes to card-body-> then card -> then looks at col-m3 div
+        var selectedElement = document.getElementById(elements.id);
+        var getPost = selectedElement.querySelector(".post-contents");
+
+        getPost.innerHTML = `<div class="input-group">
+                               
+                                <textarea class="form-control edited-contents" aria-label="With textarea"></textarea>
+                                </div>`;
+
+        selectedElement.querySelector(".edit-post").classList.add("save-post");
+        selectedElement.querySelector(".edit-post").setAttribute('onclick', "savePost(this)");
+        selectedElement.querySelector(".edit-post").innerHTML = 
+        `
+        <button type="button" class="btn btn-info">Save</button>
+        `;
+
+        selectedElement.querySelector(".edit-post").classList.remove("edit-post");
+    }
+
+    function savePost(item)
+    {
+        let elements = item.parentNode.parentNode.parentNode; //Goes to card-body-> then card -> then looks at col-m3 div
+        let newPostValue = document.getElementById(elements.id).querySelector(".edited-contents").value;
+
+        axios.put(`http://localhost:3000/api/messages/${elements.id}`, {newpostdata: newPostValue}).then(function(res)
+        {
+            console.log(res);
+            document.getElementById(elements.id).querySelector(".save-post").innerHTML = 
+            `
+            <button type="button" class="btn btn-info">Edit</button>
+            `; 
+            var selectedElement = document.getElementById(elements.id);
+            selectedElement.querySelector(".save-post").classList.add("edit-post");
+            selectedElement.querySelector(".save-post").setAttribute('onclick', "editPost(this)");
+            selectedElement.querySelector(".save-post").innerHTML = 
+            `
+            <button type="button" class="btn btn-info">Edit</button>
+            `;
+
+            selectedElement.querySelector(".edit-post").classList.remove("save-post");
+        });    
+    }
+
+    
 
     //Changes Color based off what user chooses
     function changeColor(item)
