@@ -1,4 +1,4 @@
-  
+
 <!DOCTYPE html>
 <html>
     <head>
@@ -6,8 +6,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-        <link rel="stylesheet" href="styles.css">
-        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <link rel="stylesheet" href="./css/styles.css">
         <script src="https://kit.fontawesome.com/e5bd83b59d.js" crossorigin="anonymous"></script>
     </head>
     <body>
@@ -17,19 +16,19 @@
                 <div class="input-group-prepend">
                     <span class="input-group-text" id="basic-addon2">Post Title</span>
                 </div>
-                <input type="text" id="post_title" class="form-control user-input" placeholder="Post Title" aria-label="Post Title" aria-describedby="basic-addon2">
+                <input type="text" id="post_title" class="form-control" placeholder="Post Title" aria-label="Post Title" aria-describedby="basic-addon2" required>
             </div>
             <div class="input-group mb-3">
                 <div class="input-group-prepend">
                     <span class="input-group-text" id="basic-addon2">Your Image URL</span>
                 </div>
-                <input type="text" id="post_image_url" class="form-control user-input" placeholder="Your File URL must end in jpg, jpeg, png, or gif" aria-label="jpg, jpeg, png, or gif" aria-describedby="basic-addon2">
+                <input type="text" id="post_image_url" class="form-control" placeholder="Your File URL must end in jpg, jpeg, png, or gif" aria-label="jpg, jpeg, png, or gif" aria-describedby="basic-addon2">
             </div>
             <div class="input-group">
                     <div class="input-group-prepend">
                     <span class="input-group-text">WRITE</span>
                     </div>
-                    <textarea id="post_body" class="form-control user-input" aria-label="With textarea" maxlength="150"></textarea>
+                    <textarea id="post_body" class="form-control" aria-label="With textarea" maxlength="150" required></textarea>
             </div>
             <div class="text-center formatpostbutton">
                 <button type="submit" id="post" class="btn btn-success">POST</button>
@@ -37,219 +36,274 @@
         </div>
 
         <div id="post-container" class="row"></div> <!-- For some reason class card-deck is not responsive -->
+<!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script src="./js/axiosCallBacks.js" type="text/javascript"></script>
 
-    </body>
     <script type="text/javascript">
 
-    //Show All Post Stored in Express Server
-    publish();
+        publish();
+    
+        //var postContainer = document.getElementById('post-container'); //start of card-deck
+    
+        document.getElementById("post").onclick = function(event) 
+        {   
+            if(!window.localStorage.getItem('user_id')) 
+            {
+                alert("You must login or register!");
+            }
+            else 
+            {
+                event.preventDefault();
 
-    var postContainer = document.getElementById('post-container'); //start of card-deck
+                let post_title = $("#post_title").val();
+                let post_image_url = $("#post_image_url").val();
+                let post_body = $("#post_body").val();
 
-    document.getElementById("post").onclick = function(event) 
-    {   
-        //If more than 0, validation throws an error. Post Wont Update
-        var errorExist = 0;
+                let data = {"post_title": post_title, "post_body": post_body, "post_image_url": post_image_url,"user_id": window.localStorage.getItem('user_id')};
 
-        //Loops through data and sets the property values
-        var inputs = document.querySelectorAll('user-input'); //looks for input or textarea
-        var postData = {};
+                let successCallback = function(response)
+                {
+                    console.log(response);
+                    publish();
+                };
 
-        inputs.forEach(function(item){
-            postData[item.id] = item.id;
-        });
+                let errorCallback = function(error)
+                {
+                    console.log(error);
+                };
 
-        
-        if(errorExist == 0)
+                apiInsertPost(data, successCallback, errorCallback);
+            }
+        }
+    
+        //Calls the messages API with GET
+        //Loops Through users data and populates separately in card data (bootstrap)
+        function publish()
         {
-            //post then call publish to republish
-            axios.post("http://localhost:3000/api/posts", postData).then(function(res)
+            if(!window.localStorage.getItem('user_id')) 
             {
-                return res;
-            })
-            .then(function(res)
+              alert("You must login or register ");
+            }
+            else 
             {
-                publish();
+                //Populate the feed with initial data
+                let successCallback = function(response)
+                {
+                    let postElement = document.getElementById('post-container');
+                    let postContainer = '';
 
-                //Clear Input Data Once User Submits
-                clearInputData(); 
-            })
-            .catch(function(error)
+                    //console.log(response);
+                    for(let i = 0; i< response.data.length; i++) 
+                    {
+                        postContainer += 
+                            `<div class="col-sm-3 mb-2" id=${response.data[i].id}>
+                                <div class="card border border-white">
+                                    <div class="card-body">
+                                        ${response.data[i].post_image_url ? `<img src=${response.data[i].post_image_url} class="card-img-top" >` : ''} 
+                                        <p class="card-text post-contents">${response.data[i].post_body}</p>
+                                        <p class="card-text">
+                                            <small class="text-muted">${response.data[i].name} created on ${response.data[i].post_date_updated}</small>
+                                        </p>
+                                        <div class="form-group">
+                                            <label>Colors</label>
+                                            <select class="form-control" onchange="changeColor(this) name="colorlist"></select>                                  
+                                        </div>
+                                        <div class="edit-post" onclick="editPost(this)"><button type="button" class="btn btn-info" ">Edit</button></div>
+                                        <button class="float-right btn btn-light delete-post" onclick="deletePost(this)">Delete</button>
+                                    </div>
+                                </div> 
+                               <div id="commentsContainer${response.data[i].id}">${getAllComments(response.data[i].id)}</div>
+                            </div>`;
+                    }
+                    
+                    postElement.innerHTML = postContainer;
+                }
+
+                let errorCallback = function(error)
+                {
+                    let postElement = document.getElementById('post-container');
+                    postElement.innerHTML = `<div class="alert alert-danger" role="alert">
+                    ${error}
+                    </div>`;
+                    console.log(error);
+                }
+
+                let data = { "id" : window.localStorage.getItem('user_id') };
+                //alert(window.localStorage.getItem('user_id'))
+
+                apiGetAllPosts(successCallback, errorCallback,data);
+            }
+        }
+            
+   
+        
+        function getAllComments(post_id)
+        {
+            let data = { "id" : post_id };
+            let insertComments = '';
+            let commentsTotal = 0;
+
+            let successCallback = function(results)
+            {
+                commentsTotal = results.data.length;
+                insertComments =  results.data.map(function (value,index)
+                {
+                    return `
+
+
+                    <div class="card-body">
+                        <h5 class="card-title">${value.name}</h5>
+                        <p class="card-text">${value.comment}</p>
+                        <p class="small">${value.comment_date}</p>
+                    </div>
+                   `;   
+                }).join(''); 
+                
+                document.getElementById(`commentsContainer${post_id}`).innerHTML =
+                
+                `<div class="accordion" id="accordionExample">
+  <div class="card">
+    <div class="card-header" id="headingOne">
+      <h2 class="mb-0">
+        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse${post_id}" aria-expanded="true" aria-controls="collapseOne">
+          COMMENTS (${commentsTotal})
+        </button>
+      </h2>
+    </div>
+
+    <div id="collapse${post_id}" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample">
+            ${insertComments}
+    </div>
+  </div>
+</div>`;
+            }
+
+
+            let errorCallback = function(error)
+            {
+                //let postElement = document.getElementById('post-container');
+                console.log(error);
+            }
+
+            apiGetAllComments(successCallback, errorCallback, data);
+        }
+    
+    
+        //Grabs all current elements class delete-post and attach onclick element.    
+        //item is reference to the current class the user is in
+        function deletePost(item)
+        {    
+            let elements = item.parentNode.parentNode.parentNode; //Goes to card-body-> then card -> then looks at col-m3 div
+    
+            let data = {
+                id : elements.id
+            };
+    
+            if(!window.localStorage.getItem('user_id')) 
+            {
+                alert("You must login or register!");
+            }
+            else 
+            {
+                let successCallback = function(response)
+                {
+                    console.log(response);
+                    publish();
+                };
+
+                let errorCallback = function(error)
+                {
+                    console.log(error);
+                };
+
+                apiDeletePost(data, successCallback, errorCallback);
+            }
+    
+        }
+        
+        function editPost(item)
+        {
+    
+            var elements = item.parentNode.parentNode.parentNode; //Goes to card-body-> then card -> then looks at col-m3 div
+            var selectedElement = document.getElementById(elements.id);
+            var getPost = selectedElement.querySelector(".post-contents");
+    
+            getPost.innerHTML = `<div class="input-group">
+                                   
+                                    <textarea class="form-control edited-contents" aria-label="With textarea"></textarea>
+                                    </div>`;
+    
+            selectedElement.querySelector(".edit-post").classList.add("save-post");
+            selectedElement.querySelector(".edit-post").setAttribute('onclick', "savePost(this)");
+            selectedElement.querySelector(".edit-post").innerHTML = 
+            `
+            <button type="button" class="btn btn-info">Save</button>
+            `;
+    
+            selectedElement.querySelector(".edit-post").classList.remove("edit-post");
+        }
+    
+        function savePost(item)
+        {
+            let elements = item.parentNode.parentNode.parentNode; //Goes to card-body-> then card -> then looks at col-m3 div
+            let newPostValue = document.getElementById(elements.id).querySelector(".edited-contents").value;
+    
+            let successCallback = function(response)
+            {
+                console.log(response);
+                document.getElementById(elements.id).querySelector(".save-post").innerHTML = 
+                `
+                <button type="button" class="btn btn-info">Edit</button>
+                `; 
+                var selectedElement = document.getElementById(elements.id);
+                selectedElement.querySelector(".save-post").classList.add("edit-post");
+                selectedElement.querySelector(".save-post").setAttribute('onclick', "editPost(this)");
+                selectedElement.querySelector(".save-post").innerHTML = 
+                `
+                <button type="button" class="btn btn-info">Edit</button>
+                `;
+    
+                selectedElement.querySelector(".edit-post").classList.remove("save-post");
+
+                publish();
+            };   
+            
+            let errorCallback = function(error)
             {
                 console.log(error);
-            });
-        }
-    }
-
-    //Calls the messages API with GET
-    //Loops Through users data and populates separately in card data (bootstrap)
-    function publish()
-    {
-        axios.get("http://localhost:3000/api/messages/all").then(function (res)
-        {
-            var columnContainerSize = '';
-            console.log(res);
-
-            if(res.data)
-            {
-                res.data.forEach(function(data)
-                {
-                    columnContainerSize += 
-                    `<div class="col-sm-3" id=${data.id}>
-                        <div class="card border border-white">
-                            <div class="card-body">
-                                ${data.post_image_url ? `<img src=${data.post_image_url} class="card-img-top" >` : ''} 
-                                <p class="card-text post-contents">${data.post_body}</p>
-                                <p class="card-text">
-                                    <small class="text-muted">user-temp${data.user_id} created on ${data.date_updated}</small>
-                                </p>
-                                <div class="form-group">
-                                    <label>Colors</label>
-                                    <select class="form-control" onchange="changeColor(this) name="colorlist"></select>                                  
-                                </div>
-                                <div class="edit-post" onclick="editPost(this)"><button type="button" class="btn btn-info" ">Edit</button></div>
-                                <button class="float-right btn btn-light delete-post" onclick="deletePost(this)">Delete</button>
-                            </div>
-                        </div>
-                    </div>`;
-                });
-                //After Loop and concatenate each bootstrap post with contains, 
-                postContainer.innerHTML = columnContainerSize;
             }
-        });
-    }
 
-    function inputValidation(id,value,error)
-    {
-        //File Must be an image
-        if(id == "input-file" && value != "")
-        {
-            var acceptedImageTypes  = ['jpg','jpeg','gif','png'];
-            var extension = value.split('.').pop();
-            if(acceptedImageTypes.indexOf(extension) == -1) { error += 1; alert("IMAGES ONLY!")}
+            let data = {"id" : elements.id, "post_body": newPostValue, "user_id": window.localStorage.getItem('user_id')};
+            console.log(elements.id);
+            apiEditPost(data, successCallback, errorCallback);
+
         }
-        //No Empty Strings can be posted
-        //Skips Image
-        else if(id != "input-file" && value == "")
-        {
-            error += 1;
-            alert("NO EMPTY CHARACTERS!");
-        }
-
-        return error;
-    }
-
-    //Grabs all current elements class delete-post and attach onclick element.    
-    //item is reference to the current class the user is in
-    function deletePost(item)
-    {    
-        var elements = item.parentNode.parentNode.parentNode; //Goes to card-body-> then card -> then looks at col-m3 div
-
-        var data = {
-            id : elements.id
-        };
-
-        axios.delete(`http://localhost:3000/api/messages/${elements.id}`).then(function (res)
-        {
-            publish();
-        })
-        .catch(function(error)
-        {
-            console.log(error);
-        });
-    }
     
-    function editPost(item)
-    {
-
-        var elements = item.parentNode.parentNode.parentNode; //Goes to card-body-> then card -> then looks at col-m3 div
-        var selectedElement = document.getElementById(elements.id);
-        var getPost = selectedElement.querySelector(".post-contents");
-
-        getPost.innerHTML = `<div class="input-group">
-                               
-                                <textarea class="form-control edited-contents" aria-label="With textarea"></textarea>
-                                </div>`;
-
-        selectedElement.querySelector(".edit-post").classList.add("save-post");
-        selectedElement.querySelector(".edit-post").setAttribute('onclick', "savePost(this)");
-        selectedElement.querySelector(".edit-post").innerHTML = 
-        `
-        <button type="button" class="btn btn-info">Save</button>
-        `;
-
-        selectedElement.querySelector(".edit-post").classList.remove("edit-post");
-    }
-
-    function savePost(item)
-    {
-        let elements = item.parentNode.parentNode.parentNode; //Goes to card-body-> then card -> then looks at col-m3 div
-        let newPostValue = document.getElementById(elements.id).querySelector(".edited-contents").value;
-
-        axios.put(`http://localhost:3000/api/messages/${elements.id}`, {newpostdata: newPostValue}).then(function(res)
+        //Populates colorlist options select field 
+        function colorList(selectElement)
         {
-            console.log(res);
-            document.getElementById(elements.id).querySelector(".save-post").innerHTML = 
-            `
-            <button type="button" class="btn btn-info">Edit</button>
-            `; 
-            var selectedElement = document.getElementById(elements.id);
-            selectedElement.querySelector(".save-post").classList.add("edit-post");
-            selectedElement.querySelector(".save-post").setAttribute('onclick', "editPost(this)");
-            selectedElement.querySelector(".save-post").innerHTML = 
-            `
-            <button type="button" class="btn btn-info">Edit</button>
-            `;
-
-            selectedElement.querySelector(".edit-post").classList.remove("save-post");
-        });    
-    }
-
+            var colorsToAdd = ['white','blue','green'];
+            for(var i = 0; i < colorsToAdd.length;i++)
+            {
+            var colorOptions = document.createElement("option");
+            colorOptions.text = colorsToAdd[i];
+            selectElement.appendChild(colorOptions);
+            }
+        }
+        
+        //Clear input data once user clicks post button
+        function clearInputData()
+        {
+           document.getElementById('name').value = "";
+           document.getElementById('input-file').value = "";
+           document.getElementById('contents').value = "";
+        }
     
-
-    //Changes Color based off what user chooses
-    function changeColor(item)
-    {
-        var backgroundColor = '';
-        if(item.value == 'white')
-        {
-            backgroundColor = "#FFFFFF";
-        }
-        else if (item.value == "blue")
-        {
-            backgroundColor = "#86D3FF";
-        }
-        else 
-        {
-            backgroundColor = "#B2E6C0";
-        }
-
-
-        var elements = item.parentNode.parentNode; //Goes to card-body-> then card
-        elements.style.background = backgroundColor;
-    }
-
-    //Populates colorlist options select field 
-    function colorList(selectElement)
-    {
-        var colorsToAdd = ['white','blue','green'];
-        for(var i = 0; i < colorsToAdd.length;i++)
-        {
-        var colorOptions = document.createElement("option");
-        colorOptions.text = colorsToAdd[i];
-        selectElement.appendChild(colorOptions);
-        }
-    }
-    
-    //Clear input data once user clicks post button
-    function clearInputData()
-    {
-       document.getElementById('name').value = "";
-       document.getElementById('input-file').value = "";
-       document.getElementById('contents').value = "";
-    }
-
-    //TO DO COLOR LIST
-    //TO DO UPDATE POST  
-    </script>
+        </script>
+    </body>
 </html>
