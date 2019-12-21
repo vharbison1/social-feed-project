@@ -11,10 +11,37 @@ const config =
 var express = require('express');
 var bodyParser = require('body-parser');
 var cors = require('cors');
+const bcrypt = require('bcryptjs');
 
 //Promise and Sanitize input to prevent unexpected queries (and malicious queries) into data-base
 const pgp = require('pg-promise')();
 const db = pgp(config);
+
+const Sequelize = require('sequelize');
+const UsersModel = require('./models/users');
+const PostsModel = require('./model/posts');
+const CommentsModel = require('./model/comments');
+
+const sequelize = new Sequelize('social_media_project', 'postgres', '', {
+    host: 'localhost',
+    dialect: 'postgres',
+    pool: {
+      max: 10,
+      min: 0,
+      acquire: 30000,
+      idle: 10000
+    },
+    password: "Pokemon1"
+  });
+
+//Initialize Model
+const Users = UsersModel(sequelize, Sequelize);
+const Posts = PostsModel(sequelize, Sequelize);
+const Comments = CommentsModel(sequelize, Sequelize);
+
+//Joins
+Users.hasMany(Posts, {foreignKey: 'user_id'})
+Posts.belongsTo(Users, {foreignKey: 'user_id'})
 
 //Start Server
 var app = express();
@@ -29,15 +56,15 @@ app.use(cors());
 //Get ALL Messages From All Users
 app.get('/api/posts/all', function(req, res){
 
-    db.query('SELECT * FROM posts')    
-        .then((results) => {
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify(results));
-            })
-        .catch((e) => {
-            console.error(e);
-            });
-});
+    Posts.findAll({include: [Users]}).then((results) => {
+
+        res.setHeader('Content-Type', 'application/json');
+
+        res.end(JSON.stringify(results));
+    });
+}); 
+
+
 
 //Get All Messages from Single User
   app.get('/api/posts/user/all/:id', function(req, res)
@@ -100,21 +127,21 @@ app.post('/api/posts', function (req, res) {
         post_image_url: req.body.post_image_url
     };
 
-    let query = "INSERT INTO posts(post_title, post_body, user_id, post_image_url) VALUES (${post_title}, ${post_body}, ${user_id}, ${post_image_url}) RETURNING id";
-    db.one(query, data)
-        .then((result) => {
-            db.one("SELECT * FROM posts JOIN users ON posts.user_id=users.id WHERE posts.id=$1", [result.id])
-                .then((results) => {
-                    res.setHeader('Content-Type', 'application/json');
-                    res.end(JSON.stringify(results));
-                })
-                .catch((e) => {
-                    console.error(e);
-                });
-        })
-        .catch((e) => {
-            console.error(e);
+    if(data.title && data.body && data.user_id)
+    {
+        Posts.create(data).then(function (post) {
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify(post));
+        }).catch(function(e)
+        {
+            res.status(434).send('Unable to create the post');
         });
+    }
+    else 
+    {
+        res.status(434).send('Title, body, and user_id is required for making a post!');
+    }
+
 });
 
 //Edit/Input Specific Post based off Existing Post ID
@@ -139,57 +166,52 @@ app.put('/api/posts/', function (req, res) {
 
   //THIS IS RELATED TO REGISTER PAGE -----------------
 
-  //Insert New User Into database
-  app.post('/api/register', function (req, res) {
+//Example curl : curl --data "name=john&amp;email=john@example.com&password=abc123" http://localhost:3000/api/register
+app.post('/api/register', function (req, res) {
     let data = {
         name: req.body.name,
         email: req.body.email,
         password: req.body.password
     };
     if (data.name && data.email && data.password) {
-        let query = "INSERT INTO users(name, email, password) VALUES (${name}, ${email}, ${password}) RETURNING id";
-        db.one(query, data)
-            .then((result) => {
-                db.one("SELECT * FROM users WHERE id=$1", [result.id])
-                    .then((results) => {
-                        res.setHeader('Content-Type', 'application/json');
-                        res.end(JSON.stringify(results));
-                    })
-                    .catch((e) => {
-                        console.error(e);
-                    });
-            })
-            .catch((e) => {
-                console.error(e);
-            });
+        var salt = bcrypt.genSaltSync(10);
+        var hash = bcrypt.hashSync(data.password, salt);
+        data['password'] = hash;
+        Users.create(data).then(function (user) {
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify(user));
+        });;
     } else {
         res.status(434).send('Name, email and password is required to register')
     }
 });
 
-    //THIS IS RELATED TO LOGIN PAGE -----------------
+//THIS IS RELATED TO LOGIN PAGE -----------------
 
-    //Search database for existing user with matching credentials
-    app.post('/api/login', function (req, res) {
-        let email = req.body.email;
-        let password = req.body.password;
-        if (email && password) {
-            db.one(`SELECT * FROM users WHERE email='${email}'`)
-                .then((results) => {
-                    if (results.password == password) {
-                        res.setHeader('Content-Type', 'application/json');
-                        res.end(JSON.stringify(results));
-                    } else {
-                        res.status(434).send('Email/Password combination did not match')
-                    }
-                })
-                .catch((e) => {
-                    res.status(434).send('Email does not exist in the database')
-                });
-        } else {
-            res.status(434).send('Both email and password is required to login')
-        }
-    });
+app.post('/api/login', function (req, res) {
+    let email = req.body.email;
+    let password = req.body.password;
+    if (email && password) {
+        Users.findOne({
+            where: {
+                email: email
+            },
+        }).then((results) => {
+            bcrypt.compare(password, results.password).then(function(matched) {
+                if (matched) {
+                    res.setHeader('Content-Type', 'application/json');
+                    res.end(JSON.stringify(results));
+                } else {
+                    res.status(434).send('Email/Password combination did not match')
+                }
+            });
+        }).catch((e) => {
+            res.status(434).send('Email does not exist in the database')
+        });
+    } else {
+        res.status(434).send('Both email and password is required to login')
+    }
+});
     
     //THIS IS RELATED TO COMMENTS 
 
@@ -253,7 +275,7 @@ app.put('/api/posts/', function (req, res) {
   //Get ALL users
   app.get('/api/users/all', function(req,res)
   {
-      db.query("SELECT * FROM users")
+/*       db.query("SELECT * FROM users")
       .then(function(results)
       {
         res.setHeader('Content-Type', 'application/json');
@@ -262,7 +284,12 @@ app.put('/api/posts/', function (req, res) {
       .catch(function(error)
       {
           res.status(434).send('INTERNAL ERROR');
-      });
+      }); */
+
+      Users.findAll() .then((results) => {
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify(results));
+    });
   })
     
 app.listen(3000, function(){
