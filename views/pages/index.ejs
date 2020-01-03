@@ -2,14 +2,12 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Social Media Project</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-        <link rel="stylesheet" href="./css/styles.css">
-        <script src="https://kit.fontawesome.com/e5bd83b59d.js" crossorigin="anonymous"></script>
-    </head>
-    <body>
+        <%-  include('../partials/head') -%>
+        <title>Social Media</title>
+      </head>
+    <body id="socialMediaBg">
+        <%-  include('../partials/header') -%>
+        Name: <%= name %>
         <h1 class="text-center">FACE TWIT</h1>
         <div id="input-container">
             <div class="input-group mb-3">
@@ -84,60 +82,54 @@
         //Calls the messages API with GET
         //Loops Through users data and populates separately in card data (bootstrap)
         function publish()
-        {
-            if(!window.localStorage.getItem('user_id')) 
+        { 
+            //Populate the feed with initial data
+            let successCallback = function(response)
             {
-              alert("You must login or register ");
-            }
-            else 
-            {
-                //Populate the feed with initial data
-                let successCallback = function(response)
-                {
-                    let postElement = document.getElementById('post-container');
-                    let postContainer = '';
+                let postElement = document.getElementById('post-container');
+                let postContainer = '';
 
-                    //console.log(response);
-                    for(let i = 0; i< response.data.length; i++) 
-                    {
-                        postContainer += 
-                            `<div class="col-sm-3 mb-2" id=${response.data[i].id}>
-                                <div class="card border border-white">
-                                    <div class="card-body">
-                                        ${response.data[i].post_image_url ? `<img src=${response.data[i].post_image_url} class="card-img-top" >` : ''} 
-                                        <p class="card-text post-contents">${response.data[i].post_body}</p>
-                                        <p class="card-text">
-                                            <small class="text-muted">${response.data[i].name} created on ${response.data[i].post_date_updated}</small>
-                                        </p>
-                                        <div class="form-group">
-                                            <label>Colors</label>
-                                            <select class="form-control" onchange="changeColor(this) name="colorlist"></select>                                  
-                                        </div>
-                                        <div class="edit-post" onclick="editPost(this)"><button type="button" class="btn btn-info" ">Edit</button></div>
-                                        <button class="float-right btn btn-light delete-post" onclick="deletePost(this)">Delete</button>
+                //console.log(response);
+                for(let i = 0; i< response.data.length; i++) 
+                {
+                    postContainer += 
+                        `<div class="col-sm-3 mb-2" id=${response.data[i].id}>
+                            <div class="card border border-white">
+                                <div class="card-body">
+                                    ${response.data[i].post_image_url ? `<img src=${response.data[i].post_image_url} class="card-img-top" >` : ''} 
+                                    <p class="card-text post-contents">${response.data[i].post_body}</p>
+                                    <p class="card-text">
+                                        <small class="text-muted">${response.data[i].name} created on ${response.data[i].post_date_updated}</small>
+                                    </p>
+                                    <div class="form-group">
+                                        <label>Colors</label>
+                                        <select class="form-control" onchange="changeColor(this) name="colorlist"></select>                                  
                                     </div>
-                                </div> 
-                               <div id="commentsContainer${response.data[i].id}">${getAllComments(response.data[i].id)}</div>
-                            </div>`;
-                    }
-                    
-                    postElement.innerHTML = postContainer;
+                                    <div class="edit-post" onclick="editPost(this)"><button type="button" class="btn btn-info" ">Edit</button></div>
+                                    <button class="float-right btn btn-light delete-post" onclick="deletePost(this)">Delete</button>
+                                </div>
+                            </div> 
+                            <div id="commentsContainer${response.data[i].id}">${getAllComments(response.data[i].id)}</div>
+                        </div>`;
                 }
-
-                let errorCallback = function(error)
-                {
-                    let postElement = document.getElementById('post-container');
-                    postElement.innerHTML = `<div class="alert alert-danger" role="alert">
-                    ${error}
-                    </div>`;
-                    console.log(error);
-                }
-
-                let data = { "id" : window.localStorage.getItem('user_id') };
-                //alert(window.localStorage.getItem('user_id'))
-
-                apiGetAllPosts(successCallback, errorCallback,data);
+                
+                postElement.innerHTML = postContainer;
             }
+
+            let errorCallback = function(error)
+            {
+                let postElement = document.getElementById('post-container');
+                postElement.innerHTML = `<div class="alert alert-danger" role="alert">
+                ${error}
+                </div>`;
+                console.log(error);
+            }
+
+            let data = { "id" : window.localStorage.getItem('user_id') };
+            //alert(window.localStorage.getItem('user_id'))
+
+            apiGetAllPosts(successCallback, errorCallback,data);
+            
         }
             
    

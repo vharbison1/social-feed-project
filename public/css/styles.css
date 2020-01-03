@@ -1,0 +1,20 @@
+body{
+    margin:40px;
+    background: #8686a7;
+}
+
+h1
+{
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    color: white;
+    text-shadow: 2px 2px #363215;
+}
+
+.formatpostbutton {
+    padding: 20px 0px 30px 0px;
+}
+
+#socialMediaBg{
+    background-image: url("../img/background.jpg")
+}
+
