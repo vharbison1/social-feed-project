@@ -4,21 +4,21 @@ const config =
     host: 'localhost',
     port: 5432,
     database: 'social_media_project',
-    user: 'postgres',
+    username: 'postgres',
     password: 'Pokemon1'
 };
 
 var express = require('express');
 var bodyParser = require('body-parser');
 var cors = require('cors');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs'); //password encrption, npm install crypto is another type 
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const ejs = require('ejs');
 
 //Promise and Sanitize input to prevent unexpected queries (and malicious queries) into data-base
 const pgp = require('pg-promise')();
-const db = pgp(config);
+const db = pgp(process.env.DATABASE_URL || config); //Checks for Environment URL, will only show if add postgres addon, else defaults to local 
 
 //Creating Objects for Sequelize
 const Sequelize = require('sequelize');
@@ -26,7 +26,8 @@ const UsersModel = require('./models/users');
 const PostsModel = require('./models/posts');
 const CommentsModel = require('./models/comments');
 
-const sequelize = new Sequelize('social_media_project', 'postgres', '', {
+//Commented out due to using HEROKU. This is okay for local testing
+/* const sequelize = new Sequelize('social_media_project', 'postgres', '', {
     host: 'localhost',
     dialect: 'postgres',
     pool: {
@@ -36,6 +37,18 @@ const sequelize = new Sequelize('social_media_project', 'postgres', '', {
       idle: 10000
     },
     password: "Pokemon1"
+  }); */
+
+  //Connection for Heroku
+  const connectionString = `postgres://${config.username}:${config.password}@${config.host}:${config.port}/${config.database}`
+  const sequelize = new Sequelize(process.env.DATABASE_URL || connectionString, {
+      dialect: 'postgres',
+      pool: {
+          max: 10,
+          min: 0,
+          acquire: 30000,
+          idle: 10000
+      }
   });
 
 //Initialize Model
@@ -47,6 +60,10 @@ const Comments = CommentsModel(sequelize, Sequelize);
 Users.hasMany(Posts, {foreignKey: 'user_id'});
 Posts.belongsTo(Users, {foreignKey: 'user_id'});
 
+/*
+Comments.belongsTo(Posts, {foreignKey: 'post_id'});
+Posts.hasMany(Comments, {foreignKey: 'post_id'});
+*/
 
 //Add options to app
 var app = express();
